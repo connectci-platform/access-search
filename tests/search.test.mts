@@ -133,4 +133,23 @@ describe("search proxy function", () => {
     expect(text).not.toContain("secret-key-123");
     for (const v of res.headers.values()) expect(v).not.toContain("secret-key-123");
   });
+
+  it("echoes an allowed origin and falls back to the support site otherwise", async () => {
+    process.env.ALLOWED_ORIGINS = "https://support.access-ci.org";
+    (fetch as any).mockResolvedValue(
+      new Response(JSON.stringify({ query_id: "q", documents: [] }), { status: 200 })
+    );
+    const handler = await loadHandler();
+    const allowed = await handler(
+      makeRequest("POST", { query: "x" }, { Origin: "https://support.access-ci.org" }),
+      ctx
+    );
+    expect(allowed.headers.get("Access-Control-Allow-Origin")).toBe("https://support.access-ci.org");
+
+    const disallowed = await handler(
+      makeRequest("POST", { query: "x" }, { Origin: "https://evil.example" }),
+      ctx
+    );
+    expect(disallowed.headers.get("Access-Control-Allow-Origin")).toBe("https://support.access-ci.org");
+  });
 });

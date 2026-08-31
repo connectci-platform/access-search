@@ -1,4 +1,4 @@
-import type { Context } from "@netlify/functions";
+import type { Config, Context } from "@netlify/functions";
 import { transformDocuments } from "./lib/transform.mts";
 
 const UKY_TIMEOUT_MS = 10_000;
@@ -10,7 +10,12 @@ const MAX_DOCS = 100; // F2: hard ceiling on docs transformed, well ABOVE top_k 
 const LOG_QUERY_PREFIX = 80; // F4: only a short prefix of the query is logged
 
 function getCorsHeaders(request: Request): Record<string, string> {
-  const origin = request.headers.get("Origin") || "*";
+  const allowed = (process.env.ALLOWED_ORIGINS ?? "https://support.access-ci.org")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const reqOrigin = request.headers.get("Origin") ?? "";
+  const origin = allowed.includes(reqOrigin) ? reqOrigin : allowed[0];
   return {
     "Access-Control-Allow-Origin": origin,
     "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -96,4 +101,14 @@ export default async (request: Request, _context: Context): Promise<Response> =>
   } finally {
     clearTimeout(timer);
   }
+};
+
+// 30 requests per 60s per IP — the concrete abuse control replacing Turnstile.
+export const config: Config = {
+  rateLimit: {
+    action: "rate_limit",
+    aggregateBy: "ip",
+    windowSize: 60,
+    windowLimit: 30,
+  },
 };
