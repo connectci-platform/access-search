@@ -9,13 +9,34 @@ const MAX_DOCS = 100; // F2: hard ceiling on docs transformed, well ABOVE top_k 
                       // than requested — not equal to top_k (which would make the slice a no-op)
 const LOG_QUERY_PREFIX = 80; // F4: only a short prefix of the query is logged
 
+// An allowlist entry matches the request Origin if it is either an exact
+// string or a wildcard pattern. A pattern is an entry containing "*", which
+// matches one or more characters that are NOT ".", "/", or ":" — so a single
+// "*" stands in for exactly one DNS label and cannot span dots, ports, or
+// paths. This lets "https://md-*-accessmatch.pantheonsite.io" match any
+// Pantheon multidev of the accessmatch site (md-2737-…, md-2811-…) while
+// still refusing "https://md-x.evil.pantheonsite.io" or any other host.
+function originMatches(entry: string, reqOrigin: string): boolean {
+  if (!entry.includes("*")) return entry === reqOrigin;
+  const pattern = entry
+    .split("*")
+    .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    .join("[^./:]+");
+  return new RegExp(`^${pattern}$`).test(reqOrigin);
+}
+
 function getCorsHeaders(request: Request): Record<string, string> {
   const allowed = (process.env.ALLOWED_ORIGINS ?? "https://support.access-ci.org")
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
   const reqOrigin = request.headers.get("Origin") ?? "";
-  const origin = allowed.includes(reqOrigin) ? reqOrigin : allowed[0];
+  // Echo the request origin only when it matches the allowlist; otherwise fall
+  // back to the first configured origin (a fixed, safe value — never a pattern
+  // reflected verbatim, and never the untrusted request origin).
+  const matched = allowed.some((entry) => originMatches(entry, reqOrigin));
+  const fallback = allowed.find((e) => !e.includes("*")) ?? "https://support.access-ci.org";
+  const origin = matched ? reqOrigin : fallback;
   return {
     "Access-Control-Allow-Origin": origin,
     "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -109,7 +130,17 @@ export default async (request: Request, _context: Context): Promise<Response> =>
   }
 };
 
-// 30 requests per 60s per IP — the concrete abuse control replacing Turnstile.
+// Intended abuse control: 30 requests per 60s per IP.
+//
+// NOTE: on non-Enterprise Netlify plans this rule deploys but does NOT enforce.
+// The platform coerces the `ip` aggregation to `domain` at deploy time (verified
+// in the deploy's function traffic-rule), and domain-pooled rate limiting is a
+// High-Performance-Edge / Enterprise feature — so a personal/Pro plan records the
+// rule as a no-op. It self-activates if the site moves to a plan that supports
+// per-IP enforcement. Until then the practical protections are the CORS allowlist
+// (cross-origin calls are limited to the support site) and UKY's own upstream
+// throttling. If real per-IP limiting is needed on this plan, implement a
+// sliding-window counter in-function using Netlify Blobs instead of this export.
 export const config: Config = {
   rateLimit: {
     action: "rate_limit",

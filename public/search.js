@@ -1,4 +1,13 @@
 // public/search.js
+//
+// Loaded as a CLASSIC script (no type="module"), on purpose. This widget is
+// embedded cross-origin (e.g. a Drupal page on accessmatch.pantheonsite.io
+// loading it from the Netlify site). A module script fetched cross-origin is
+// subject to CORS and will NOT execute unless the asset host sends
+// Access-Control-Allow-Origin — Netlify's static assets do not by default, so
+// a module build silently fails to mount. Classic scripts are exempt from that
+// requirement, matching the widget this replaced. Do not add `export` or load
+// this with type="module". The widget self-registers via window.initAccessSearch.
 const MIN_QUERY_LEN = 2; // ignore degenerate 1-char submits; short acronyms (mfa, gpu) still allowed
 
 // One session id per page load, shared across every search on this page —
@@ -46,7 +55,7 @@ function renderResults(listEl, statusEl, results, query) {
     .join("");
 }
 
-export function initSearch(mountEl) {
+function initSearch(mountEl) {
   // Optional cross-origin API base for embeds (e.g. Drupal pages on another
   // domain), set via data-api-base on the mount element. Falls back to the
   // relative path, which works on the standalone same-origin Netlify page.

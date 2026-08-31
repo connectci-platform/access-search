@@ -193,4 +193,39 @@ describe("search proxy function", () => {
     );
     expect(disallowed.headers.get("Access-Control-Allow-Origin")).toBe("https://support.access-ci.org");
   });
+
+  it("matches a multidev wildcard entry but not lookalike hosts", async () => {
+    // production custom domain first (so it is the safe fallback), then the
+    // fixed test env, then the multidev wildcard scoped to the accessmatch site.
+    process.env.ALLOWED_ORIGINS =
+      "https://support.access-ci.org,https://test-accessmatch.pantheonsite.io,https://md-*-accessmatch.pantheonsite.io";
+    (fetch as any).mockResolvedValue(
+      new Response(JSON.stringify({ query_id: "q", documents: [] }), { status: 200 })
+    );
+    const handler = await loadHandler();
+
+    const echo = async (origin: string) =>
+      (await handler(makeRequest("POST", { query: "x" }, { Origin: origin }), ctx)).headers.get(
+        "Access-Control-Allow-Origin"
+      );
+
+    // a real multidev of the accessmatch site is echoed back
+    expect(await echo("https://md-2737-accessmatch.pantheonsite.io")).toBe(
+      "https://md-2737-accessmatch.pantheonsite.io"
+    );
+    // the fixed test env still works
+    expect(await echo("https://test-accessmatch.pantheonsite.io")).toBe(
+      "https://test-accessmatch.pantheonsite.io"
+    );
+    // the "*" must not span a dot: a subdomain smuggled into the label is refused
+    expect(await echo("https://md-x.evil-accessmatch.pantheonsite.io")).toBe(
+      "https://support.access-ci.org"
+    );
+    // a different Pantheon site must not match the accessmatch-scoped pattern
+    expect(await echo("https://md-1-othersite.pantheonsite.io")).toBe(
+      "https://support.access-ci.org"
+    );
+    // the wildcard is never itself reflected as a header value
+    expect(await echo("https://attacker.example")).toBe("https://support.access-ci.org");
+  });
 });
