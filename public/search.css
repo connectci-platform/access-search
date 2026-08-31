@@ -20,20 +20,27 @@
   border-radius: 4px;
 }
 
+/*
+ * Colors use CSS custom properties so the widget inherits the host page's
+ * ACCESS theme when embedded (e.g. on support.access-ci.org/find), matching
+ * the qa-bot pattern. Fallbacks are the ACCESS brand teal (#107180 primary,
+ * #1A5B6E dark) so the standalone test page still looks on-brand. An embedder
+ * can override by setting --primaryColor / --secondaryColor on a parent.
+ */
 .as-form button {
   padding: 0.5rem 1rem;
   font-size: 1rem;
-  border: 1px solid #0b5394;
+  border: 1px solid var(--primaryColor, #107180);
   border-radius: 4px;
-  background: #0b5394;
+  background: var(--primaryColor, #107180);
   color: #fff;
   cursor: pointer;
 }
 
 .as-form button:hover,
 .as-form button:focus {
-  background: #073763;
-  border-color: #073763;
+  background: var(--secondaryColor, #1a5b6e);
+  border-color: var(--secondaryColor, #1a5b6e);
 }
 
 .as-count {
@@ -60,13 +67,13 @@
 .as-title {
   font-size: 1.05em;
   font-weight: 600;
-  color: #0b5394;
+  color: var(--primaryColor, #107180);
   text-decoration: underline;
 }
 
 .as-title:hover,
 .as-title:focus {
-  color: #073763;
+  color: var(--secondaryColor, #1a5b6e);
 }
 
 .as-host {

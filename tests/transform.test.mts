@@ -30,6 +30,14 @@ describe("transformDocuments", () => {
     expect(out[0].snippet).toContain("Just body prose about SSH");
   });
 
+  it("falls back to body prose when the Description line is empty (unfilled template)", () => {
+    // a doc with an unfilled **Description:** field but real prose below it
+    const text = "# Title\n\n**Source:** https://x\n\n**Description:**\n\nTo request an account, visit the ACCESS allocations portal.";
+    const out = transformDocuments([doc(text, "https://x")]);
+    expect(out[0].snippet).toContain("To request an account");
+    expect(out[0].snippet).not.toBe("");
+  });
+
   it("caps the snippet length near 200 chars", () => {
     const long = "# T\n\n**Description:** " + "x".repeat(500);
     const out = transformDocuments([doc(long, "https://x")]);

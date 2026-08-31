@@ -33,9 +33,14 @@ function parseTitle(text: string, url: string): string {
 function parseSnippet(text: string): string {
   const lines = text.split("\n");
   const descLine = lines.find((l) => l.trim().startsWith("**Description:**"));
+  const descContent = descLine
+    ? descLine.trim().replace(/^\*\*Description:\*\*\s*/, "")
+    : "";
   let body: string;
-  if (descLine) {
-    body = descLine.trim().replace(/^\*\*Description:\*\*\s*/, "");
+  if (descContent) {
+    // use the Description line only when it actually has content; an unfilled
+    // **Description:** template field falls through to the body prose below.
+    body = descContent;
   } else {
     body = lines
       .filter((l) => {
