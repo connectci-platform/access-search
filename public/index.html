@@ -9,6 +9,15 @@
   <body>
     <main style="max-width: 720px; margin: 2rem auto; padding: 0 1rem">
       <h1>ACCESS Documentation Search</h1>
+      <!--
+        Embedders (e.g. the Drupal page at support.access-ci.org/find): set
+        data-api-base to this Netlify site's absolute function URL, since a
+        relative "/api/search" would resolve against the embedding page's own
+        origin instead. Example:
+          <div id="access-search" data-api-base="https://<site>.netlify.app/api/search"></div>
+        Omit data-api-base on this standalone page — it falls back to the
+        same-origin relative path.
+      -->
       <div id="access-search"></div>
     </main>
     <script type="module" src="/search.js"></script>

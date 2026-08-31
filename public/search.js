@@ -1,6 +1,12 @@
 // public/search.js
 const MIN_QUERY_LEN = 2; // ignore degenerate 1-char submits; short acronyms (mfa, gpu) still allowed
 
+// One session id per page load, shared across every search on this page —
+// lets UKY's session-level reporting group searches by visit instead of by request.
+const sessionId =
+  (typeof crypto !== "undefined" && crypto.randomUUID?.()) ??
+  String(Date.now()) + Math.random().toString(16).slice(2);
+
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
@@ -41,6 +47,11 @@ function renderResults(listEl, statusEl, results, query) {
 }
 
 export function initSearch(mountEl) {
+  // Optional cross-origin API base for embeds (e.g. Drupal pages on another
+  // domain), set via data-api-base on the mount element. Falls back to the
+  // relative path, which works on the standalone same-origin Netlify page.
+  const apiBase = mountEl.dataset.apiBase || "/api/search";
+
   mountEl.innerHTML =
     '<form class="as-form" role="search">' +
     '<label class="as-visually-hidden" for="as-input">Search ACCESS documentation</label>' +
@@ -77,14 +88,18 @@ export function initSearch(mountEl) {
     countEl.textContent = "";
 
     try {
-      const res = await fetch("/api/search", {
+      const res = await fetch(apiBase, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify({ query, session_id: sessionId }),
         signal: inflight.signal,
       });
       if (mySeq !== seq) return; // a newer search superseded this one
-      if (!res.ok) throw new Error("search failed");
+      if (!res.ok) {
+        const err = new Error("search failed");
+        err.status = res.status;
+        throw err;
+      }
       const data = await res.json();
       if (mySeq !== seq) return;
       const results = data.results || [];
@@ -95,8 +110,15 @@ export function initSearch(mountEl) {
       if (mySeq !== seq) return;
       listEl.innerHTML = "";
       countEl.textContent = "";
-      statusEl.textContent = "Search is temporarily unavailable.";
-      errEl.textContent = "Search is temporarily unavailable. Please try again.";
+      const message =
+        err && err.status === 429
+          ? "You're searching too quickly — please wait a moment and try again."
+          : "Search is temporarily unavailable. Please try again.";
+      statusEl.textContent =
+        err && err.status === 429
+          ? "You're searching too quickly — please wait a moment and try again."
+          : "Search is temporarily unavailable.";
+      errEl.textContent = message;
       errEl.hidden = false;
     } finally {
       if (mySeq === seq) listEl.setAttribute("aria-busy", "false");

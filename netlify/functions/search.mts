@@ -39,7 +39,7 @@ export default async (request: Request, _context: Context): Promise<Response> =>
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
   if (request.method !== "POST") return json({ error: "Method not allowed" }, 405, cors);
 
-  let body: { query?: unknown };
+  let body: { query?: unknown; session_id?: unknown };
   try {
     body = await request.json();
   } catch {
@@ -48,6 +48,12 @@ export default async (request: Request, _context: Context): Promise<Response> =>
   const query = typeof body.query === "string" ? body.query.trim() : "";
   if (!query) return json({ error: "Missing query" }, 400, cors);
   if (query.length > MAX_QUERY_LEN) return json({ error: "Query too long" }, 400, cors); // F3
+
+  // Prefer the widget-supplied session id (one per page load) so UKY's session-level
+  // reporting groups searches by visit. Fall back to a generated id for direct callers
+  // that don't send one, keeping backward compatibility.
+  const sessionId =
+    typeof body.session_id === "string" && body.session_id.trim() ? body.session_id.trim() : randomId();
 
   const apiKey = process.env.UKY_API_KEY;
   const ukyUrl = process.env.UKY_RETRIEVE_URL;
@@ -61,7 +67,7 @@ export default async (request: Request, _context: Context): Promise<Response> =>
       headers: {
         "X-API-KEY": apiKey,
         "X-Origin": "access-search",
-        "X-Session-ID": randomId(),
+        "X-Session-ID": sessionId,
         "X-Query-ID": randomId(),
         "Content-Type": "application/json",
       },
