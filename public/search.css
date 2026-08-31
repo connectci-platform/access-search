@@ -1,0 +1,96 @@
+.as-visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0);
+  white-space: nowrap; border: 0;
+}
+
+.as-form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.as-input {
+  flex: 1 1 auto;
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #767676;
+  border-radius: 4px;
+}
+
+.as-form button {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border: 1px solid #0b5394;
+  border-radius: 4px;
+  background: #0b5394;
+  color: #fff;
+  cursor: pointer;
+}
+
+.as-form button:hover,
+.as-form button:focus {
+  background: #073763;
+  border-color: #073763;
+}
+
+.as-count {
+  margin: 0.75rem 0 0.25rem;
+  font-size: 0.9em;
+  color: #333;
+}
+
+.as-results {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.as-result {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.as-result:last-child {
+  border-bottom: none;
+}
+
+.as-title {
+  font-size: 1.05em;
+  font-weight: 600;
+  color: #0b5394;
+  text-decoration: underline;
+}
+
+.as-title:hover,
+.as-title:focus {
+  color: #073763;
+}
+
+.as-host {
+  display: block;
+  font-size: 0.8em;
+  color: #555;
+}
+
+.as-snippet {
+  margin: 0.35rem 0 0;
+  color: #222;
+}
+
+.as-empty,
+.as-loading {
+  padding: 0.75rem 0;
+  color: #444;
+}
+
+.as-error {
+  margin: 0.75rem 0 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #b3261e;
+  border-radius: 4px;
+  background: #fdecea;
+  color: #611a15;
+}
