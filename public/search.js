@@ -55,7 +55,7 @@ export function initSearch(mountEl) {
   mountEl.innerHTML =
     '<form class="as-form" role="search">' +
     '<label class="as-visually-hidden" for="as-input">Search ACCESS documentation</label>' +
-    '<input id="as-input" class="as-input" type="search" placeholder="Search ACCESS documentation" autocomplete="off">' +
+    '<input id="as-input" class="as-input" type="search" placeholder="Search" autocomplete="off">' +
     '<button type="submit">Search</button>' +
     "</form>" +
     '<p class="as-count" aria-hidden="true"></p>' +

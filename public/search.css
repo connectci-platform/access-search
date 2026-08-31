@@ -12,35 +12,34 @@
   align-items: stretch;
 }
 
+/* Square corners (no border-radius) to match the ACCESS support site's inputs. */
 .as-input {
   flex: 1 1 auto;
   padding: 0.5rem 0.75rem;
   font-size: 1rem;
   border: 1px solid #767676;
-  border-radius: 4px;
 }
 
 /*
  * Colors use CSS custom properties so the widget inherits the host page's
- * ACCESS theme when embedded (e.g. on support.access-ci.org/find), matching
- * the qa-bot pattern. Fallbacks are the ACCESS brand teal (#107180 primary,
- * #1A5B6E dark) so the standalone test page still looks on-brand. An embedder
- * can override by setting --primaryColor / --secondaryColor on a parent.
+ * ACCESS theme when embedded (e.g. on support.access-ci.org/find). The submit
+ * button is ACCESS yellow (the theme's --btn-primary) with dark text, matching
+ * the support site's primary CTA. Titles/links stay ACCESS teal. Fallbacks are
+ * the ACCESS brand hexes so the standalone test page still looks on-brand; an
+ * embedder can override via --accentColor / --primaryColor / --secondaryColor.
  */
 .as-form button {
   padding: 0.5rem 1rem;
   font-size: 1rem;
-  border: 1px solid var(--primaryColor, #107180);
-  border-radius: 4px;
-  background: var(--primaryColor, #107180);
-  color: #fff;
+  border: 1px solid var(--accentColor, #ffc42d);
+  background: var(--accentColor, #ffc42d);
+  color: var(--black, #232323);
   cursor: pointer;
 }
 
 .as-form button:hover,
 .as-form button:focus {
-  background: var(--secondaryColor, #1a5b6e);
-  border-color: var(--secondaryColor, #1a5b6e);
+  filter: brightness(0.94);
 }
 
 .as-count {
@@ -97,7 +96,6 @@
   margin: 0.75rem 0 0;
   padding: 0.5rem 0.75rem;
   border: 1px solid #b3261e;
-  border-radius: 4px;
   background: #fdecea;
   color: #611a15;
 }

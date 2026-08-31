@@ -8,7 +8,10 @@
   </head>
   <body>
     <main style="max-width: 720px; margin: 2rem auto; padding: 0 1rem">
-      <h1>ACCESS Documentation Search</h1>
+      <!-- Mirrors the live /find page so this standalone preview matches the real embed.
+           On production the Drupal page supplies these; the widget renders none. -->
+      <h1>Find Information about ACCESS</h1>
+      <p>Search ACCESS and Resource Provider websites and documentation.</p>
       <!--
         Embedders (e.g. the Drupal page at support.access-ci.org/find):
 
@@ -25,9 +28,9 @@
            standalone test page only. This keeps the page's heading hierarchy
            correct and avoids a duplicate/competing title on /find.
 
-        3. The widget colors inherit --primaryColor / --secondaryColor from the
-           host page (ACCESS teal fallbacks), so it picks up the support site's
-           theme automatically when embedded.
+        3. The widget inherits --primaryColor / --secondaryColor (link/title
+           teal) and --accentColor (yellow submit button) from the host page,
+           so it picks up the support site theme automatically when embedded.
       -->
       <div id="access-search"></div>
     </main>
