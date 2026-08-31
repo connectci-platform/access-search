@@ -38,6 +38,24 @@ describe("transformDocuments", () => {
     expect(out[0].snippet).not.toBe("");
   });
 
+  it("skips ALL **Label:** metadata lines, not just the known three (event docs)", () => {
+    // Real event-doc shape: a block of **Event Type:** / **Event ID:** / **Date:**
+    // etc. metadata, then real prose under a heading. The snippet must be the
+    // prose, never the leaked metadata labels.
+    const text =
+      "# OSPool User Training - DAGMan\n\n" +
+      "**Event Type:** Training  \n**Event ID:** 8889  \n" +
+      "**Date:** May 19, 2026 at 02:30 PM  \n**Location:** Online  \n" +
+      "**Skill Level:** Beginner  \n\n" +
+      "## Event Description\n\n" +
+      "Presented by an HTCondor DAGMan developer, this workshop automates multi-job workflows.";
+    const out = transformDocuments([doc(text, "https://support.access-ci.org/events")]);
+    expect(out[0].snippet).toContain("Presented by an HTCondor DAGMan developer");
+    expect(out[0].snippet).not.toContain("**Event Type:**");
+    expect(out[0].snippet).not.toContain("**Event ID:**");
+    expect(out[0].snippet).not.toContain("Event Type:");
+  });
+
   it("caps the snippet length near 200 chars", () => {
     const long = "# T\n\n**Description:** " + "x".repeat(500);
     const out = transformDocuments([doc(long, "https://x")]);

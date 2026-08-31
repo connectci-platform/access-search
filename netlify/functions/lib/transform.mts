@@ -45,13 +45,13 @@ function parseSnippet(text: string): string {
     body = lines
       .filter((l) => {
         const t = l.trim();
-        return (
-          t &&
-          !t.startsWith("#") &&
-          !t.startsWith("**Source:**") &&
-          !t.startsWith("**Keywords:**") &&
-          !t.startsWith("**Description:**")
-        );
+        // Skip empties, markdown headings, and ANY leading metadata line of the
+        // form **Label:** — not just Source/Keywords/Description. Ingested docs
+        // carry different metadata blocks (content pages use Source/Keywords;
+        // event docs use Event Type/Event ID/Date/Location/…), and none of it
+        // belongs in a human-readable snippet. Matching the general shape keeps
+        // new label types from leaking without hardcoding each one.
+        return t !== "" && !t.startsWith("#") && !/^\*\*[^*]+:\*\*/.test(t);
       })
       .join(" ")
       .trim();
