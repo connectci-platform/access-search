@@ -65,7 +65,7 @@ function initSearch(mountEl) {
     '<form class="as-form" role="search">' +
     '<label class="as-visually-hidden" for="as-input">Search ACCESS documentation</label>' +
     '<input id="as-input" class="as-input" type="search" placeholder="Search" autocomplete="off">' +
-    '<button type="submit">Search</button>' +
+    '<button type="submit" class="btn btn-primary">Search</button>' +
     "</form>" +
     '<p class="as-count" aria-hidden="true"></p>' +
     '<div class="as-visually-hidden" role="status" aria-live="polite"></div>' +

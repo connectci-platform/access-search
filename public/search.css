@@ -21,25 +21,41 @@
 }
 
 /*
- * Colors use CSS custom properties so the widget inherits the host page's
- * ACCESS theme when embedded (e.g. on support.access-ci.org/find). The submit
- * button is ACCESS yellow (the theme's --btn-primary) with dark text, matching
- * the support site's primary CTA. Titles/links stay ACCESS teal. Fallbacks are
- * the ACCESS brand hexes so the standalone test page still looks on-brand; an
- * embedder can override via --accentColor / --primaryColor / --secondaryColor.
+ * The submit button carries the host theme's `btn btn-primary` classes (set in
+ * search.js), so when embedded it inherits that site's primary-button style
+ * automatically — ACCESS yellow on the support site, whatever brand another
+ * tenant defines elsewhere. Those theme rules use !important and fully override
+ * what follows.
+ *
+ * The rules below are only a FALLBACK for the standalone test page, which has no
+ * theme and no .btn definition. They approximate the ACCESS primary button
+ * (uppercase, bold, square, thick yellow border, invert-on-hover) so the test
+ * page still looks on-brand. Do not rely on these when embedded; the host theme
+ * owns the button there.
  */
 .as-form button {
-  padding: 0.5rem 1rem;
+  display: inline-block;
   font-size: 1rem;
-  border: 1px solid var(--accentColor, #ffc42d);
-  background: var(--accentColor, #ffc42d);
-  color: var(--black, #232323);
+  font-weight: 700;
+  padding: 0.5rem 2.5rem;
+  border-radius: 0;
+  border: 4px solid #ffc42d;
+  text-transform: uppercase;
+  line-height: 1.5;
+  text-align: center;
   cursor: pointer;
+  user-select: none;
+  background-color: #ffc42d;
+  color: #232323;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
+    border-color 0.15s ease-in-out;
 }
 
 .as-form button:hover,
 .as-form button:focus {
-  filter: brightness(0.94);
+  background-color: #fff;
+  color: #232323;
+  border-color: #232323;
 }
 
 .as-count {
@@ -66,13 +82,13 @@
 .as-title {
   font-size: 1.05em;
   font-weight: 600;
-  color: var(--primaryColor, #107180);
+  color: var(--md-teal, #107180);
   text-decoration: underline;
 }
 
 .as-title:hover,
 .as-title:focus {
-  color: var(--secondaryColor, #1a5b6e);
+  color: var(--dark-teal, #1a5b6e);
 }
 
 .as-host {
