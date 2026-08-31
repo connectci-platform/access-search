@@ -10,13 +10,24 @@
     <main style="max-width: 720px; margin: 2rem auto; padding: 0 1rem">
       <h1>ACCESS Documentation Search</h1>
       <!--
-        Embedders (e.g. the Drupal page at support.access-ci.org/find): set
-        data-api-base to this Netlify site's absolute function URL, since a
-        relative "/api/search" would resolve against the embedding page's own
-        origin instead. Example:
-          <div id="access-search" data-api-base="https://<site>.netlify.app/api/search"></div>
-        Omit data-api-base on this standalone page — it falls back to the
-        same-origin relative path.
+        Embedders (e.g. the Drupal page at support.access-ci.org/find):
+
+        1. Set data-api-base to this Netlify site's absolute function URL, since
+           a relative "/api/search" would resolve against the embedding page's
+           own origin instead. Example:
+             <div id="access-search" data-api-base="https://<site>.netlify.app/api/search"></div>
+           Omit data-api-base on this standalone page — it falls back to the
+           same-origin relative path.
+
+        2. The widget renders NO heading of its own. Provide a section heading
+           in the host page's own markup at the level that fits its outline
+           (e.g. an <h2> under the page <h1>). The <h1> above is for this
+           standalone test page only. This keeps the page's heading hierarchy
+           correct and avoids a duplicate/competing title on /find.
+
+        3. The widget colors inherit --primaryColor / --secondaryColor from the
+           host page (ACCESS teal fallbacks), so it picks up the support site's
+           theme automatically when embedded.
       -->
       <div id="access-search"></div>
     </main>
