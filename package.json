@@ -1,0 +1,16 @@
+{
+  "name": "access-search",
+  "version": "0.1.0",
+  "description": "UKY-backed documentation search for the ACCESS support /find page",
+  "private": true,
+  "scripts": {
+    "test": "tsc --noEmit && vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@netlify/functions": "^5.2.0",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0",
+    "vitest": "^4.1.4"
+  }
+}
