@@ -9,6 +9,10 @@
 // requirement, matching the widget this replaced. Do not add `export` or load
 // this with type="module". The widget self-registers via window.initAccessSearch.
 const MIN_QUERY_LEN = 2; // ignore degenerate 1-char submits; short acronyms (mfa, gpu) still allowed
+// Hold the waiting state at least this long. Retrieval is usually ~1.2s, but a
+// cached or fast response that resolved in 80ms would otherwise flash the
+// spinner on and off, which reads as a glitch rather than as progress.
+const MIN_SPINNER_MS = 300;
 
 // One session id per page load, shared across every search on this page —
 // lets UKY's session-level reporting group searches by visit instead of by request.
@@ -92,9 +96,14 @@ function initSearch(mountEl) {
     inflight = new AbortController();
 
     errEl.hidden = true;
+    // Keep any previous results on screen while the new search runs: an empty
+    // list plus a spinner is a blank page, whereas dimming the old results
+    // keeps the page stable and still reads as "working".
     listEl.setAttribute("aria-busy", "true");
-    listEl.innerHTML = '<li class="as-loading">Searching…</li>';
-    countEl.textContent = "";
+    listEl.classList.remove("as-entering");
+    countEl.innerHTML = '<span class="as-spinner" aria-hidden="true"></span>Searching…';
+    statusEl.textContent = "Searching…";
+    const startedAt = Date.now();
 
     try {
       const res = await fetch(apiBase, {
@@ -111,8 +120,14 @@ function initSearch(mountEl) {
       }
       const data = await res.json();
       if (mySeq !== seq) return;
+      const elapsed = Date.now() - startedAt;
+      if (elapsed < MIN_SPINNER_MS) {
+        await new Promise((r) => setTimeout(r, MIN_SPINNER_MS - elapsed));
+        if (mySeq !== seq) return;
+      }
       const results = data.results || [];
       renderResults(listEl, statusEl, results, query);
+      listEl.classList.add("as-entering");
       countEl.textContent = statusEl.textContent; // visible mirror of the announced count
     } catch (err) {
       if (err && err.name === "AbortError") return; // superseded — ignore

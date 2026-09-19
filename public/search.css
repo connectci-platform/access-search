@@ -108,6 +108,55 @@
   color: #444;
 }
 
+/* Inline spinner beside the result count. Retrieval runs ~1.2s, which is a
+   single-module wait rather than a full-page load, so a spinner is the fitting
+   indicator (NN/g put skeletons at full-page loads and spinners at 2-10s
+   module loads). It also avoids claiming a result count we cannot know while
+   the request is in flight — counts here range from 0 to 10.
+
+   Held for a minimum duration in JS so a fast response does not flash it. */
+.as-spinner {
+  display: inline-block;
+  width: 0.85em;
+  height: 0.85em;
+  margin-right: 0.45rem;
+  vertical-align: -0.1em;
+  border: 2px solid #c9c9c9;
+  border-top-color: var(--md-teal, #107180);
+  border-radius: 50%;
+  animation: as-spin 0.7s linear infinite;
+}
+
+@keyframes as-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Without motion, a static ring still reads as "working" beside the label. */
+@media (prefers-reduced-motion: reduce) {
+  .as-spinner {
+    animation: none;
+    border-top-color: #c9c9c9;
+    opacity: 0.6;
+  }
+}
+
+/* Results fade in rather than snapping, which softens the swap from the
+   waiting state without pretending to know the row count in advance. */
+.as-results.as-entering .as-result {
+  animation: as-fade-in 0.18s ease-out both;
+}
+
+@keyframes as-fade-in {
+  from { opacity: 0; transform: translateY(2px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .as-results.as-entering .as-result {
+    animation: none;
+  }
+}
+
 .as-error {
   margin: 0.75rem 0 0;
   padding: 0.5rem 0.75rem;
