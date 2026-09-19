@@ -140,6 +140,21 @@
   }
 }
 
+/* While a new search runs, the previous results stay put but dim. They are
+   still readable and clickable — someone may be mid-sentence or reaching for a
+   link — but the fade signals they are about to be replaced, so a stale list
+   is not mistaken for the answer to the query just typed. */
+.as-results[aria-busy="true"] .as-result {
+  opacity: 0.6;
+  transition: opacity 0.15s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .as-results[aria-busy="true"] .as-result {
+    transition: none;
+  }
+}
+
 /* Results fade in rather than snapping, which softens the swap from the
    waiting state without pretending to know the row count in advance. */
 .as-results.as-entering .as-result {

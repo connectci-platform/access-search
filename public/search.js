@@ -13,6 +13,11 @@ const MIN_QUERY_LEN = 2; // ignore degenerate 1-char submits; short acronyms (mf
 // cached or fast response that resolved in 80ms would otherwise flash the
 // spinner on and off, which reads as a glitch rather than as progress.
 const MIN_SPINNER_MS = 300;
+// Backstop for a request that never resolves. The function already aborts its
+// own upstream call at 10s and answers 502, so this only fires when the
+// function itself is unreachable — otherwise the browser would wait on its
+// default timeout, which is minutes.
+const CLIENT_TIMEOUT_MS = 15_000;
 
 // One session id per page load, shared across every search on this page —
 // lets UKY's session-level reporting group searches by visit instead of by request.
@@ -86,6 +91,18 @@ function initSearch(mountEl) {
   let seq = 0; // race guard: only the latest search may render
   let inflight = null; // AbortController for the current request
 
+  // Escape abandons a search in flight. The request is already sent so this
+  // saves no server work — it exists so someone who spots a typo mid-wait can
+  // get their previous results back instead of watching a query they no longer
+  // want. Does nothing when no search is running, leaving the browser's own
+  // Escape behaviour (clearing a type-ahead, say) untouched.
+  input.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    if (!inflight || listEl.getAttribute("aria-busy") !== "true") return;
+    e.preventDefault();
+    inflight.abort("cancelled");
+  });
+
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const query = input.value.trim();
@@ -94,6 +111,10 @@ function initSearch(mountEl) {
     const mySeq = ++seq;
     if (inflight) inflight.abort();
     inflight = new AbortController();
+    const myController = inflight; // `inflight` moves on; this request's own
+    const timeoutId = setTimeout(() => {
+      if (mySeq === seq) myController.abort("timeout");
+    }, CLIENT_TIMEOUT_MS);
 
     errEl.hidden = true;
     // Keep any previous results on screen while the new search runs: an empty
@@ -130,7 +151,23 @@ function initSearch(mountEl) {
       listEl.classList.add("as-entering");
       countEl.textContent = statusEl.textContent; // visible mirror of the announced count
     } catch (err) {
-      if (err && err.name === "AbortError") return; // superseded — ignore
+      if (err && err.name === "AbortError") {
+        // Superseded by a newer search, or cancelled/timed out by us. A
+        // supersede is silent — the newer search owns the UI now.
+        const reason = myController.signal.reason;
+        if (reason === "cancelled") {
+          listEl.setAttribute("aria-busy", "false");
+          countEl.textContent = "";
+          statusEl.textContent = "Search cancelled.";
+        } else if (reason === "timeout") {
+          listEl.setAttribute("aria-busy", "false");
+          countEl.textContent = "";
+          statusEl.textContent = "Search timed out.";
+          errEl.textContent = "That search took too long. Please try again.";
+          errEl.hidden = false;
+        }
+        return;
+      }
       if (mySeq !== seq) return;
       listEl.innerHTML = "";
       countEl.textContent = "";
@@ -145,6 +182,7 @@ function initSearch(mountEl) {
       errEl.textContent = message;
       errEl.hidden = false;
     } finally {
+      clearTimeout(timeoutId);
       if (mySeq === seq) listEl.setAttribute("aria-busy", "false");
     }
   });
