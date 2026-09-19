@@ -108,6 +108,62 @@
   color: #444;
 }
 
+/* Skeleton rows stand in for results while a search is in flight. They mirror
+   the real row geometry (title, host, two snippet lines) so the list does not
+   jump when results replace them. Screen readers never see these — the list is
+   aria-busy while they are shown and the status region announces the result
+   count when it arrives. */
+.as-skeleton {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.as-skeleton:last-child {
+  border-bottom: none;
+}
+
+.as-skeleton span {
+  display: block;
+  height: 0.7em;
+  margin-bottom: 0.45rem;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #e8e8e8 25%, #f4f4f4 50%, #e8e8e8 75%);
+  background-size: 200% 100%;
+  animation: as-shimmer 1.4s ease-in-out infinite;
+}
+
+.as-skeleton .as-sk-title {
+  height: 1.05em;
+  width: 45%;
+}
+
+.as-skeleton .as-sk-host {
+  height: 0.8em;
+  width: 28%;
+}
+
+.as-skeleton .as-sk-line {
+  width: 100%;
+}
+
+.as-skeleton .as-sk-line-short {
+  width: 72%;
+  margin-bottom: 0;
+}
+
+@keyframes as-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+/* Respect a reduced-motion preference: keep the placeholder, drop the sweep. */
+@media (prefers-reduced-motion: reduce) {
+  .as-skeleton span {
+    animation: none;
+    background: #ebebeb;
+  }
+}
+
 .as-error {
   margin: 0.75rem 0 0;
   padding: 0.5rem 0.75rem;

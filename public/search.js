@@ -9,6 +9,10 @@
 // requirement, matching the widget this replaced. Do not add `export` or load
 // this with type="module". The widget self-registers via window.initAccessSearch.
 const MIN_QUERY_LEN = 2; // ignore degenerate 1-char submits; short acronyms (mfa, gpu) still allowed
+// Placeholder rows while waiting. Kept below the usual result count so the list
+// shrinks rather than grows when results land — growing pushes content down and
+// reads as a second jump.
+const SKELETON_ROWS = 4;
 
 // One session id per page load, shared across every search on this page —
 // lets UKY's session-level reporting group searches by visit instead of by request.
@@ -28,6 +32,21 @@ function hostOf(url) {
   } catch {
     return "";
   }
+}
+
+// Placeholder rows shown while a search is in flight. Mirrors the real row
+// geometry so results replace them without the list jumping. Purely visual:
+// the list carries aria-busy while these are up, so assistive tech announces
+// the count from the status region rather than reading empty rows.
+function skeletonRows(n) {
+  const row =
+    '<li class="as-skeleton" aria-hidden="true">' +
+    '<span class="as-sk-title"></span>' +
+    '<span class="as-sk-host"></span>' +
+    '<span class="as-sk-line"></span>' +
+    '<span class="as-sk-line-short"></span>' +
+    "</li>";
+  return row.repeat(n);
 }
 
 function renderResults(listEl, statusEl, results, query) {
@@ -93,7 +112,8 @@ function initSearch(mountEl) {
 
     errEl.hidden = true;
     listEl.setAttribute("aria-busy", "true");
-    listEl.innerHTML = '<li class="as-loading">Searching…</li>';
+    listEl.innerHTML = skeletonRows(SKELETON_ROWS);
+    statusEl.textContent = "Searching…";
     countEl.textContent = "";
 
     try {
