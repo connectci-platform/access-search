@@ -69,18 +69,18 @@ netlify dev     # serves public/ and the function at /api/search
 
 ## Deploying
 
-The Netlify site is **not** linked to this repository, so pushing to `main`
-does not deploy. Deploys are manual:
+The Netlify site `connectci-access-search` is linked to this repository, so
+merging to `main` deploys to <https://connectci-access-search.netlify.app>.
+Pull requests get their own deploy preview.
+
+There is no build step — `public/` is published as-is and `netlify.toml` points
+at the functions directory.
+
+To deploy from a working copy without merging:
 
 ```bash
 netlify deploy --prod
 ```
-
-Site: `connectci-access-search` (<https://connectci-access-search.netlify.app>).
-
-This means the repo and the live site can drift. Linking the repo in the
-Netlify UI would make `main` deploy on push and remove that gap; until then,
-deploy deliberately after merging.
 
 ## License
 
